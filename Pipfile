@@ -9,6 +9,8 @@ selenium = "*"
 webdriver-manager = "*"
 pyinstaller = "*"
 streamlit = "*"
+discord = "*"
+websocket-client = "*"
 
 [dev-packages]
 
