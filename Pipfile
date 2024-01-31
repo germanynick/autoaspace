@@ -11,6 +11,9 @@ pyinstaller = "*"
 streamlit = "*"
 discord = "*"
 websocket-client = "*"
+langchain = "*"
+duckduckgo-search = "*"
+langchain-community = "*"
 
 [dev-packages]
 

@@ -5,6 +5,9 @@ import threading
 import time
 import sys
 import requests
+from .agent import memory, executor
+import traceback
+
 
 running = False
 
@@ -49,9 +52,10 @@ def tooggle_running():
     global running
     running = not running
     print('running:', running)
+    
     return running
 
-def run(token, channel_id, history):
+def run(token, channel_id, bot_name, ids,  history):
     global running
 
     if (running is False):
@@ -66,6 +70,8 @@ def run(token, channel_id, history):
 
     heartbeat_interval = event['d']['heartbeat_interval'] / 1000
     threading._start_new_thread(heartbeat, (heartbeat_interval,ws))
+    
+    
 
     payload ={
         'op': 2,
@@ -85,7 +91,6 @@ def run(token, channel_id, history):
     
 
     while running:
-        
         event = recieve_json_response(ws)
 
         # print('Waiting for message', event)
@@ -95,19 +100,31 @@ def run(token, channel_id, history):
             id = event ['d']['id']
             MessageReference = event ['d']['channel_id']
             MessageReference_1 = event['d']['guild_id']
-            tinnhan=(f'guild_id:{MessageReference_1}|channel_id:{MessageReference}|userID:{id}|username: {author}|{content}')
+            tinnhan=(f'guild_id:{MessageReference_1}|channel_id:{MessageReference}|userID:{id}|username: {author}|content:{content}')
             
-            if channel_id in tinnhan:
+            print(author in ids, author, ids)
+
+            if channel_id in tinnhan and content is not None and author in ids:
                 
                 history += [[None, tinnhan]]
                 yield history
 
+                data = { "input": content, "author": author, "username": bot_name}
+
+                response = executor.invoke(input=data)
+                
+                message = response.get('output', None)
+                history += [[message, None]]
+                send_message(token, channel_id=channel_id, message=message)
+                yield history
+                
             op_code = event('op')
             if op_code == 11:
                 print('heartbeat recieved')
                 
         except Exception as e:
-            print(e)
+            traceback.print_exc()
+            time.sleep(2)
             pass
     
     return history
